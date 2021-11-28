@@ -40,12 +40,10 @@
 			<ListItem />
 			<ListItem />
 		</List>
-    <TabBar current="search" />
   </view>
 </template>
 
 <script>
-import TabBar from '@/components/TabBar'
 import Tag from '@/components/Tag'
 import TagGroup from '@/components/Tag/TagGroup'
 import List from '@/components/List'
@@ -58,11 +56,7 @@ export default {
     TagGroup,
     List,
 		ListItem,
-		TabBar,
     SearchInput
-  },
-  onShow() {
-    uni.hideTabBar({})
   }
 }
 </script>

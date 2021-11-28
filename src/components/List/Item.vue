@@ -7,7 +7,9 @@
       <view class="title">极限竞速：地平线5 WIN10专用</view>
       <view class="brage">103 GB</view>
     </view>
-    <view class="action">+</view>
+    <view class="action" :class="{ minus: isMinus }" @click="handleActionClick">
+      {{ isMinus ? '-' : '+' }}
+    </view>
   </view>
 </template>
 
@@ -15,8 +17,16 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  setup() {
+  props: {
+    isMinus: Boolean
+  },
+  emits: ['action'],
+  setup(props, { emit }) {
+    const handleActionClick = (...rest) => {
+      emit('action', ...rest)
+    }
     return {
+      handleActionClick
     }
   }
 })
@@ -74,6 +84,11 @@ export default defineComponent({
     color: #FFF;
     box-shadow: 8upx 0 10upx #d1d9e6, 
                 0 -8upx 10upx fade(#fff, 50);
+    &.minus {
+      background-color: #F56C6C;
+      box-shadow: 8upx 0 10upx #f3bdbd, 
+                0 -8upx 10upx fade(#fff, 50);
+    }
   }
 }
 </style>

@@ -14,17 +14,12 @@
 <script>
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
-import TabBar from '../../components/TabBar'
 
 export default {
 	components: {
 		List,
-		ListItem,
-		TabBar
+		ListItem
 	},
-  onShow() {
-    uni.hideTabBar({})
-  },
   setup() {
     return {
       title: 'hello'
