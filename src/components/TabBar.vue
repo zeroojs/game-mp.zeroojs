@@ -3,7 +3,7 @@
     <cover-view class="tabbar-item"
       v-for="(item, index) in list" 
       :key="index" 
-      @click="tabbarChange(item.path)"
+      @tap="tabbarChange(item.path)"
     >
       <cover-image v-if="isCurrent(item)" class="item-img" :src="item.iconActive"></cover-image>
       <cover-image v-else class="item-img" :src="item.icon"></cover-image>

@@ -11,13 +11,12 @@
       <cover-view class="username">哇哈哈</cover-view>
     </cover-view>
     <cover-view class="profile-info">
-      <!-- 退出登录 -->
-      <cover-button class="like-btn">心愿清单</cover-button>
       <cover-view class="content-title">联系我们</cover-view>
       <cover-view class="content flex">
         <cover-image class="service-user" src="/static/dpx.png"></cover-image>
         <cover-image class="service-site" src="/static/dpx.png"></cover-image>
       </cover-view>
+      <cover-button class="like-btn">心愿清单</cover-button>
       <cover-button class="sign-out-btn">退出登录</cover-button>
     </cover-view>
   </view>
@@ -69,7 +68,7 @@ export default {
     right: 50%;
     bottom: 40upx;
     transform: translateX(110%);
-    background-color: #6c9ae4;
+    background-color: #6C63FF;
     color: #FFF;
     padding: 20upx 40upx;
     border-radius: 50upx;
@@ -77,7 +76,7 @@ export default {
               -10upx -10upx 15upx fade(#000, 10);
               
   }
-  .sign-out-btn {
+  .like-btn {
     transform: translateX(-10%);
   }
   .profile-info {

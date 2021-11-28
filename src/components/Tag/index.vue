@@ -1,5 +1,5 @@
 <template>
-  <view class="tag" @click="handleClick">
+  <view class="tag" @tap="handleClick">
     <slot />
   </view>
 </template>
@@ -20,7 +20,7 @@ export default {
 .tag {
   color: #FFF;
   font-size: 24upx;
-  background-color: #6c9ae4;
+  background-color: #6C63FF;
   padding: 10upx 30upx;
   border-radius: 100upx;
   display: inline-block;

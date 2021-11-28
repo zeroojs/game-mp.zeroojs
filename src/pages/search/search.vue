@@ -1,5 +1,5 @@
 <template>
-  <view class="app-page search-page">
+  <view class="app-page search-page" @click="handleClick">
     <view class="filter">
       <view class="filter-body">
         <SearchInput />
@@ -29,9 +29,9 @@
       <view class="filter-bottom"></view>
     </view>
     <List>
-			<ListItem />
-			<ListItem />
-			<ListItem />
+			<ListItem @action="handleAction" />
+			<ListItem @action="handleAction" />
+			<ListItem @action="handleAction" />
 			<ListItem />
 			<ListItem />
 			<ListItem />
@@ -57,6 +57,18 @@ export default {
     List,
 		ListItem,
     SearchInput
+  },
+  setup() {
+    const handleAction = (e) => {
+      console.log('search', e)
+    }
+    const handleClick = (e) => {
+      console.log('handleClick', e)
+    }
+    return {
+      handleAction,
+      handleClick
+    }
   }
 }
 </script>
@@ -79,7 +91,7 @@ export default {
   .filter-bottom {
     height: 60upx;
     width: 100%;
-    background: linear-gradient(to bottom, #DBE4F3, fade(#DBE4F3, 80), transparent);
+    // background: linear-gradient(to bottom, #DBE4F3, fade(#DBE4F3, 80), transparent);
     border-radius: 0 0 10upx;
   }
 }

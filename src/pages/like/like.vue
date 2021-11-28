@@ -73,7 +73,7 @@ export default {
   width: 30upx;
   height: 30upx;
   border-radius: 50%;
-  border: 2upx solid #6c9ae4;
+  border: 2upx solid #6C63FF;
   position: relative;
   box-sizing: border-box;
   &::before {
@@ -88,7 +88,7 @@ export default {
     transform: translate(-50%, -50%);
   }
   &.active::before {
-    background-color: #6c9ae4;
+    background-color: #6C63FF;
   }
 }
 .like-list-item {
@@ -117,7 +117,7 @@ export default {
   padding: 20upx 20upx 0;
   border-radius: 40upx 40upx 0 0;
   overflow: hidden;
-  box-shadow: 0 0 30upx fade(#6c9ae4, 20);
+  box-shadow: 0 0 30upx fade(#6C63FF, 20);
   box-sizing: border-box;
   font-size: 30upx;
   letter-spacing: 1px;
@@ -138,7 +138,7 @@ export default {
   }
   //  确认按钮
   .primary-btn {
-    background-color: #6c9ae4;
+    background-color: #6C63FF;
     color: #FFF;
     padding: 8upx 20upx;
     border-radius: 40upx;
@@ -154,7 +154,7 @@ export default {
     font-weight: bold;
     letter-spacing: unset;
     margin: 0 20upx;
-    color: #6c9ae4;
+    color: #6C63FF;
   }
 }
 </style>

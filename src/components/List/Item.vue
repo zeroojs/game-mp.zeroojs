@@ -7,14 +7,26 @@
       <view class="title">极限竞速：地平线5 WIN10专用</view>
       <view class="brage">103 GB</view>
     </view>
-    <view class="action" :class="{ minus: isMinus }" @click="handleActionClick">
+    <view
+      class="action add"
+      :class="{ hide: actionMinus }"
+      :style="style"
+      @click="handleActionClick"
+    >
       {{ isMinus ? '-' : '+' }}
+    </view>
+    <view
+      v-if="actionMinus"
+      class="action minus"
+      @click="handleActionClick"
+    >
+      -
     </view>
   </view>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, onBeforeMount, ref } from 'vue'
 
 export default defineComponent({
   props: {
@@ -22,14 +34,47 @@ export default defineComponent({
   },
   emits: ['action'],
   setup(props, { emit }) {
+    const { move, style, actionMinus } = useMove()
     const handleActionClick = (...rest) => {
+      move(...rest)
       emit('action', ...rest)
     }
     return {
+      style,
+      actionMinus,
       handleActionClick
     }
   }
 })
+
+function useMove() {
+  const style = ref('')
+  const actionMinus = ref(false)
+  let timer = 0
+  let reTimer = 0
+  const move = (event) => {
+    if (actionMinus.value) {
+      actionMinus.value = false
+      style.value = ''
+      return
+    }
+    const { offsetLeft: x } = event.target
+    const [{ clientY }] = event.touches
+    style.value = `position: fixed;left:${x}px;top:${clientY - 12}px;`
+    // style.value = `position: fixed;top:483px;bottom:unset;left:180px;`
+    timer = setTimeout(() => {
+      style.value = `position: fixed;top:483px;bottom:unset;left:180px;`
+      actionMinus.value = true
+      clearTimeout(timer)
+    }, 30)
+  }
+
+  onBeforeMount(() => {
+    clearInterval(timer)
+    clearInterval(reTimer)
+  })
+  return { move, style, actionMinus }
+}
 </script>
 
 <style lang="less" scoped>
@@ -37,6 +82,7 @@ export default defineComponent({
   min-height: 150upx;
   width: 100%;
   padding: 10upx;
+  overflow: hidden;
   background-color: #FFF;
   border-radius: 40upx;
   margin-bottom: 40upx;
@@ -67,7 +113,8 @@ export default defineComponent({
     justify-content: space-between;
     .brage {
       font-size: 30upx;
-      color: #6c9ae4;
+      // color: #6C63FF;
+      color: #6C63FF;
       font-weight: 600;
     }
   }
@@ -78,17 +125,46 @@ export default defineComponent({
     text-align: center;
     line-height: 75upx;
     border-radius: 50%;
-    background-color: #d1d9e6;
+    background-color: #6C63FF;
     font-size: 60upx;
     font-weight: 600;
     color: #FFF;
-    box-shadow: 8upx 0 10upx #d1d9e6, 
+    transition: 1s cubic-bezier(.29,.39,.94,.46);
+    // transition-duration: 3s;
+    box-shadow: 8upx 0 10upx #8680f8, 
                 0 -8upx 10upx fade(#fff, 50);
     &.minus {
+      animation: slidIn .3s forwards ease-out;
+      opacity: 0;
+      transform: translateX(100%) translateY(-100%);
       background-color: #F56C6C;
       box-shadow: 8upx 0 10upx #f3bdbd, 
                 0 -8upx 10upx fade(#fff, 50);
     }
+    // 模拟定位
+    // position: absolute;
+    // bottom: -40px;
+    // left: 100px;
+    // &.add.show {
+    //   animation: slidIn .3s forwards ease-out;
+    // }
+    // &.add.hide {
+    //   opacity: 0;
+    //   display: none;
+    //   transition: unset;
+    //   transform: translateX(100%) translateY(-100%);
+    // }
+  }
+}
+
+@keyframes slidIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) translateY(0);
   }
 }
 </style>

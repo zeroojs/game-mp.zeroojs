@@ -1,9 +1,9 @@
 {
 	"pages": [
 		{
-			"path": "pages/mine/mine",
+			"path": "pages/search/search",
 			"style": {
-				"navigationBarTitleText": "我的",
+				"navigationBarTitleText": "搜索",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
@@ -15,16 +15,16 @@
 			}
 		},
 		{
-			"path": "pages/search/search",
+			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "搜索",
+				"navigationBarTitleText": "首页",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
 		{
-			"path": "pages/index/index",
+			"path": "pages/mine/mine",
 			"style": {
-				"navigationBarTitleText": "首页",
+				"navigationBarTitleText": "我的",
 				"backgroundColor": "#DBE4F3"
 			}
 		}
@@ -32,11 +32,11 @@
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
+		"navigationBarBackgroundColor": "#DBE4F3",
 		"backgroundColor": "#F8F8F8"
 	},
 	"tabBar": {
-		"selectedColor": "#6c9ae4",
+		"selectedColor": "#6C63FF",
 		"color": "#999999",
 		"backgroundColor": "#DBE4F3",
 		"borderStyle": "white",
