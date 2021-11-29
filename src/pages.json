@@ -1,16 +1,16 @@
 {
 	"pages": [
 		{
-			"path": "pages/search/search",
+			"path": "pages/like/like",
 			"style": {
-				"navigationBarTitleText": "搜索",
+				"navigationBarTitleText": "我想要",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
 		{
-			"path": "pages/like/like",
+			"path": "pages/search/search",
 			"style": {
-				"navigationBarTitleText": "我想要",
+				"navigationBarTitleText": "搜索",
 				"backgroundColor": "#DBE4F3"
 			}
 		},

@@ -26,7 +26,7 @@
           <Tag>竞速</Tag>
         </TagGroup>
       </view>
-      <view class="filter-bottom"></view>
+      <!-- <view class="filter-bottom"></view> -->
     </view>
     <List>
 			<ListItem @action="handleAction" />
@@ -82,6 +82,7 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
+  z-index: 9;
   .filter-body {
     width: calc(100% - 80upx);
     padding: 40upx 40upx 0;

@@ -4,13 +4,13 @@
       <div class="flex like-list-item">
         <view class="select-button"></view>
 			  <view class="like-list-item__content">
-          <ListItem :is-minus="true" />
+          <ListItem :is-minus="true" @remove="handleRemove" />
         </view>
       </div>
       <div class="flex like-list-item">
         <view class="select-button active"></view>
 			  <view class="like-list-item__content">
-          <ListItem :is-minus="true" />
+          <ListItem :is-minus="true" @remove="handleRemove" />
         </view>
       </div>
       <div class="flex like-list-item">
@@ -54,6 +54,14 @@ export default {
     List,
 		ListItem,
     SearchInput
+  },
+  setup() {
+    const handleRemove = () => {
+      console.log('移除 Item')
+    }
+    return {
+      handleRemove
+    }
   }
 }
 </script>

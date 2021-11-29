@@ -1,5 +1,5 @@
 <template>
-  <view class="list-item">
+  <view class="list-item" :class="{ 'is-remove': isRemove }">
     <view class="media">
       <image src="/static/dpx.png" class="media-inner"></image>
     </view>
@@ -8,16 +8,18 @@
       <view class="brage">103 GB</view>
     </view>
     <view
+      v-if="!isMinus"
       class="action add"
-      :class="{ hide: actionMinus }"
+      :class="{ hide: actionMinus, 'is-restart': isRestart, 'is-show': addShow && !isRestart }"
       :style="style"
       @click="handleActionClick"
     >
-      {{ isMinus ? '-' : '+' }}
+      +
     </view>
     <view
-      v-if="actionMinus"
+      v-if="actionMinus || isMinus"
       class="action minus"
+      :class="{ 'no-animate': isMinus }"
       @click="handleActionClick"
     >
       -
@@ -34,46 +36,82 @@ export default defineComponent({
   },
   emits: ['action'],
   setup(props, { emit }) {
-    const { move, style, actionMinus } = useMove()
+    const { move, style, actionMinus, isRestart, addShow } = useMove()
+    const { isRemove, remove } = useRemove(props)
     const handleActionClick = (...rest) => {
       move(...rest)
+      remove().then(() => emit('remove', ...rest))
       emit('action', ...rest)
     }
     return {
       style,
+      addShow,
+      isRemove,
+      isRestart,
       actionMinus,
       handleActionClick
     }
   }
 })
 
+// 移除动画效果
+function useRemove(props) {
+  const isRemove = ref(false)
+  let timer = 0
+  const remove = () => {
+    if (!props.isMinus) return Promise.resolve()
+    isRemove.value = true
+    return new Promise(resolve => {
+      timer = setTimeout(() => {
+        isRemove.value = false
+        clearTimeout(timer)
+        timer = 0
+        resolve()
+      }, 800)
+    })
+  }
+  return { isRemove, remove }
+}
+
 function useMove() {
   const style = ref('')
-  const actionMinus = ref(false)
+  const actionMinus = ref(false) // 标注已加入想要列表
+  const isRestart = ref(false) // 标注回到最初位置
+  const addShow = ref(false) // 添加按钮显示
   let timer = 0
   let reTimer = 0
   const move = (event) => {
+    if (reTimer !== 0) return // 防止过快点击，当动画结束完才能点击
     if (actionMinus.value) {
       actionMinus.value = false
-      style.value = ''
+      isRestart.value = false
+      addShow.value = true
       return
     }
     const { offsetLeft: x } = event.target
     const [{ clientY }] = event.touches
-    style.value = `position: fixed;left:${x}px;top:${clientY - 12}px;`
+    style.value = `position:fixed;left:${x}px;top:${clientY - 12}px;`
     // style.value = `position: fixed;top:483px;bottom:unset;left:180px;`
     timer = setTimeout(() => {
-      style.value = `position: fixed;top:483px;bottom:unset;left:180px;`
+      style.value = `position:fixed;top:483px;bottom:unset;left:180px;`
       actionMinus.value = true
       clearTimeout(timer)
+      timer = 0
     }, 30)
+    reTimer = setTimeout(() => {
+      style.value = ''
+      isRestart.value = true
+      addShow.value = false
+      clearTimeout(reTimer)
+      reTimer = 0
+    }, 800)
   }
 
   onBeforeMount(() => {
     clearInterval(timer)
     clearInterval(reTimer)
   })
-  return { move, style, actionMinus }
+  return { move, style, actionMinus, isRestart, addShow }
 }
 </script>
 
@@ -91,6 +129,9 @@ function useMove() {
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  &.is-remove {
+    animation: slidRemove .8s cubic-bezier(.03,.63,.84,.24);
+  }
   .title {
     font-size: 30upx;
   }
@@ -129,7 +170,8 @@ function useMove() {
     font-size: 60upx;
     font-weight: 600;
     color: #FFF;
-    transition: 1s cubic-bezier(.29,.39,.94,.46);
+    display: block;
+    transition: .8s cubic-bezier(.29,.39,.94,.46);
     // transition-duration: 3s;
     box-shadow: 8upx 0 10upx #8680f8, 
                 0 -8upx 10upx fade(#fff, 50);
@@ -141,19 +183,28 @@ function useMove() {
       box-shadow: 8upx 0 10upx #f3bdbd, 
                 0 -8upx 10upx fade(#fff, 50);
     }
+    &.no-animate {
+      opacity: 1;
+      animation: unset;
+      transform: unset;
+    }
     // 模拟定位
     // position: absolute;
     // bottom: -40px;
     // left: 100px;
-    // &.add.show {
-    //   animation: slidIn .3s forwards ease-out;
-    // }
+    &.add.is-show {
+      animation: slidIn .3s forwards ease-out;
+    }
     // &.add.hide {
     //   opacity: 0;
     //   display: none;
     //   transition: unset;
     //   transform: translateX(100%) translateY(-100%);
     // }
+    &.add.is-restart {
+      display: none;
+      transform: translateX(100%) translateY(-100%);
+    }
   }
 }
 
@@ -165,6 +216,20 @@ function useMove() {
   100% {
     opacity: 1;
     transform: translateX(0) translateY(0);
+  }
+}
+
+@keyframes slidRemove {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10%);
+  }
+  100% {
+    opacity: 0.6;
+    transform: translateX(150%);
   }
 }
 </style>
