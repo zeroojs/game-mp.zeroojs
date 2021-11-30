@@ -29,16 +29,14 @@
       <!-- <view class="filter-bottom"></view> -->
     </view>
     <List>
-			<ListItem @action="handleAction" />
-			<ListItem @action="handleAction" />
-			<ListItem @action="handleAction" />
-			<ListItem />
-			<ListItem />
-			<ListItem />
-			<ListItem />
-			<ListItem />
-			<ListItem />
-			<ListItem />
+			<ListItem
+        v-for="item in list"
+        :key="item.id"
+        :name="item.name"
+        :size="item.size"
+        :src="item.avatar"
+        @action="handleAction"
+      />
 		</List>
   </view>
 </template>
@@ -49,6 +47,7 @@ import TagGroup from '@/components/Tag/TagGroup'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import SearchInput from '@/components/SearchInput'
+import { ref } from '@vue/reactivity'
 
 export default {
   components: {
@@ -59,13 +58,27 @@ export default {
     SearchInput
   },
   setup() {
+    const list = ref([])
     const handleAction = (e) => {
       console.log('search', e)
     }
     const handleClick = (e) => {
       console.log('handleClick', e)
     }
+
+    const getList = async () => {
+      list.value = [
+        { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+        { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+        { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+        { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
+      ]
+      list.value = list.value.map(item => ({ ...item, isRemove: false }))
+    }
+    getList()
     return {
+      list,
+      getList,
       handleAction,
       handleClick
     }

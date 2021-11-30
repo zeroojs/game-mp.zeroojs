@@ -1,29 +1,29 @@
 <template>
   <view class="app-page like-page">
     <List>
-      <div class="flex like-list-item">
-        <view class="select-button"></view>
+      <div
+        v-for="item in list"
+        :key="item.id"
+        :class="{ 'is-remove': item.isRemove }"
+        class="flex like-list-item"
+        @tap="selectedLike(item)"
+      >
+        <view class="select-button" :class="{ active: isSelected(item) }"></view>
 			  <view class="like-list-item__content">
-          <ListItem :is-minus="true" @remove="handleRemove" />
-        </view>
-      </div>
-      <div class="flex like-list-item">
-        <view class="select-button active"></view>
-			  <view class="like-list-item__content">
-          <ListItem :is-minus="true" @remove="handleRemove" />
-        </view>
-      </div>
-      <div class="flex like-list-item">
-        <view class="select-button"></view>
-			  <view class="like-list-item__content">
-          <ListItem :is-minus="true" />
+          <ListItem
+            :is-minus="true"
+            :name="item.name"
+            :size="item.size"
+            :src="item.avatar"
+            @action="handleRemove(item)"
+          />
         </view>
       </div>
 		</List>
     <cover-view class="action-group flex bewteen">
       <cover-view class="flex">
-        <cover-view class="flex select-all-btn">
-          <cover-view class="select-button active"></cover-view>
+        <cover-view class="flex select-all-btn" @click="selectedAll()">
+          <cover-view :class="{ active: isSelectedAll }" class="select-button"></cover-view>
           全选
         </cover-view>
         <cover-view class="del-btn">删除</cover-view>
@@ -40,8 +40,7 @@
 </template>
 
 <script>
-import Tag from '@/components/Tag'
-import TagGroup from '@/components/Tag/TagGroup'
+import { computed, ref } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import SearchInput from '@/components/SearchInput'
@@ -49,20 +48,96 @@ import SearchInput from '@/components/SearchInput'
 export default {
   name: 'LikePage',
   components: {
-    Tag,
-    TagGroup,
     List,
 		ListItem,
     SearchInput
   },
   setup() {
-    const handleRemove = () => {
+    const { isRemove, remove } = useRemove()
+    const { list, delLike, isSelected, selectedLike, isSelectedAll, selectedAll } = useLike()
+
+    const handleRemove = async (item) => {
+      await remove(item)
+      delLike(item)
       console.log('移除 Item')
     }
     return {
-      handleRemove
+      list,
+      isRemove,
+      handleRemove,
+      isSelected,
+      selectedLike,
+      isSelectedAll,
+      selectedAll
     }
   }
+}
+// 喜欢列表
+function useLike() {
+  const list = ref([])
+  const selected = ref([])
+
+  // 获取喜欢列表数据
+  const getList = async () => {
+    list.value = [
+      { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+      { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+      { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+      { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
+    ]
+    list.value = list.value.map(item => ({ ...item, isRemove: false }))
+  }
+  getList()
+
+  // 删除某一项
+  const delLike = async (item) => {
+    list.value = list.value.filter(l => l.id !== item.id)
+  }
+
+  // 选中
+  const selectedLike = ({ id }) => {
+    if (isSelected({ id })) {
+      selected.value = selected.value.filter(i => i !== id)
+      return
+    }
+    selected.value.push(id)
+  }
+
+  // 判断是否选择项
+  const isSelected = ({ id }) => selected.value.includes(id)
+
+  // 是否已全选
+  const isSelectedAll = computed(() => selected.value.length === list.value.length)
+
+  // 全选操作
+  const selectedAll = () => {
+    if (isSelectedAll.value) {
+      selected.value = []
+      return
+    }
+    selected.value = list.value.map(i => i.id)
+  }
+  return { list, delLike, getList, selectedLike, isSelected, isSelectedAll, selectedAll }
+}
+
+// 移除动画效果
+function useRemove(props) {
+  const isRemove = ref(false)
+  let timer = 0
+  const remove = (item) => {
+    // isRemove.value = true
+    item.isRemove = true
+    return new Promise(resolve => {
+      timer = setTimeout(() => {
+        // isRemove.value = false
+        item.isRemove = false
+        clearTimeout(timer)
+        timer = 0
+        resolve()
+      }, 800)
+    })
+  }
+  return { isRemove, remove }
 }
 </script>
 
@@ -101,6 +176,9 @@ export default {
 }
 .like-list-item {
   gap: 20upx;
+  &.is-remove {
+    animation: slidRemove .8s cubic-bezier(.03,.63,.84,.24);
+  }
   .select-button {
     margin-bottom: 40upx;
     width: 40upx;
@@ -163,6 +241,20 @@ export default {
     letter-spacing: unset;
     margin: 0 20upx;
     color: #6C63FF;
+  }
+}
+
+@keyframes slidRemove {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10%);
+  }
+  100% {
+    opacity: 0.6;
+    transform: translateX(150%);
   }
 }
 </style>

@@ -1,11 +1,11 @@
 <template>
-  <view class="list-item" :class="{ 'is-remove': isRemove }">
+  <view class="list-item">
     <view class="media">
-      <image src="/static/dpx.png" class="media-inner"></image>
+      <image :src="src" class="media-inner"></image>
     </view>
     <view class="content">
-      <view class="title">极限竞速：地平线5 WIN10专用</view>
-      <view class="brage">103 GB</view>
+      <view class="title">{{ name }}</view>
+      <view class="brage">{{ size }} GB</view>
     </view>
     <view
       v-if="!isMinus"
@@ -20,7 +20,7 @@
       v-if="actionMinus || isMinus"
       class="action minus"
       :class="{ 'no-animate': isMinus }"
-      @click="handleActionClick"
+      @click.stop="handleActionClick"
     >
       -
     </view>
@@ -32,46 +32,27 @@ import { defineComponent, onBeforeMount, ref } from 'vue'
 
 export default defineComponent({
   props: {
-    isMinus: Boolean
+    isMinus: Boolean,
+    name: String,
+    src: String,
+    size: String
   },
   emits: ['action'],
   setup(props, { emit }) {
     const { move, style, actionMinus, isRestart, addShow } = useMove()
-    const { isRemove, remove } = useRemove(props)
     const handleActionClick = (...rest) => {
       move(...rest)
-      remove().then(() => emit('remove', ...rest))
       emit('action', ...rest)
     }
     return {
       style,
       addShow,
-      isRemove,
       isRestart,
       actionMinus,
       handleActionClick
     }
   }
 })
-
-// 移除动画效果
-function useRemove(props) {
-  const isRemove = ref(false)
-  let timer = 0
-  const remove = () => {
-    if (!props.isMinus) return Promise.resolve()
-    isRemove.value = true
-    return new Promise(resolve => {
-      timer = setTimeout(() => {
-        isRemove.value = false
-        clearTimeout(timer)
-        timer = 0
-        resolve()
-      }, 800)
-    })
-  }
-  return { isRemove, remove }
-}
 
 function useMove() {
   const style = ref('')
@@ -90,10 +71,15 @@ function useMove() {
     }
     const { offsetLeft: x } = event.target
     const [{ clientY }] = event.touches
+    const { screenWidth: winWidth, screenHeight: winHeight } = uni.getSystemInfoSync()
+    // const winHeight = uni.getSystemInfoSync().screenHeight
+    // const winWidth = uni.getSystemInfoSync().screenWidth
     style.value = `position:fixed;left:${x}px;top:${clientY - 12}px;`
-    // style.value = `position: fixed;top:483px;bottom:unset;left:180px;`
+    // style.value = `position:fixed;left:${x}px;bottom:${clientY - 140}px;`
     timer = setTimeout(() => {
-      style.value = `position:fixed;top:483px;bottom:unset;left:180px;`
+      // style.value = `position:fixed;top:1000px;bottom:unset;left:180px;`
+      style.value = `position:fixed;top:${winHeight}px;bottom:unset;left:${winWidth / 2}px;`
+      // style.value = `position:fixed;bottom:-50px;left:calc(50% + 10px);`
       actionMinus.value = true
       clearTimeout(timer)
       timer = 0
@@ -129,9 +115,6 @@ function useMove() {
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  &.is-remove {
-    animation: slidRemove .8s cubic-bezier(.03,.63,.84,.24);
-  }
   .title {
     font-size: 30upx;
   }
@@ -216,20 +199,6 @@ function useMove() {
   100% {
     opacity: 1;
     transform: translateX(0) translateY(0);
-  }
-}
-
-@keyframes slidRemove {
-  0% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-10%);
-  }
-  100% {
-    opacity: 0.6;
-    transform: translateX(150%);
   }
 }
 </style>
