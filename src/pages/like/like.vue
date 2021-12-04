@@ -150,7 +150,8 @@ function useRemove(props) {
   }
 }
 .like-page {
-  padding-bottom: 300upx;
+  padding-bottom: 60upx;
+  min-height: calc(100vh - 100upx);
 }
 .select-button {
   width: 30upx;

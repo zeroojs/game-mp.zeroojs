@@ -1,5 +1,5 @@
 <template>
-  <view class="list-item">
+  <view class="list-item" :class="{ 'is-disabled': disabled }">
     <view class="media">
       <image :src="src" class="media-inner"></image>
     </view>
@@ -8,7 +8,7 @@
       <view class="brage">{{ size }} GB</view>
     </view>
     <view
-      v-if="!isMinus"
+      v-if="!isMinus && !disabled"
       class="action add"
       :class="{ hide: actionMinus, 'is-restart': isRestart, 'is-show': addShow && !isRestart }"
       :style="style"
@@ -17,7 +17,7 @@
       +
     </view>
     <view
-      v-if="actionMinus || isMinus"
+      v-if="(actionMinus || isMinus) && !disabled"
       class="action minus"
       :class="{ 'no-animate': isMinus }"
       @click.stop="handleActionClick"
@@ -33,6 +33,7 @@ import { defineComponent, onBeforeMount, ref } from 'vue'
 export default defineComponent({
   props: {
     isMinus: Boolean,
+    disabled: Boolean,
     name: String,
     src: String,
     size: String
@@ -115,6 +116,14 @@ function useMove() {
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  &.is-disabled {
+    box-shadow: unset;
+    .content {
+      width: auto;
+      flex: 1;
+      padding-right: 20upx;
+    }
+  }
   .title {
     font-size: 30upx;
   }

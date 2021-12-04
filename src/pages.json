@@ -1,9 +1,16 @@
 {
 	"pages": [
 		{
-			"path": "pages/search/search",
+			"path": "pages/like/list",
 			"style": {
-				"navigationBarTitleText": "搜索",
+				"navigationBarTitleText": "我想要",
+				"backgroundColor": "#DBE4F3"
+			}
+		},
+		{
+			"path": "pages/mine/mine",
+			"style": {
+				"navigationBarTitleText": "我的",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
@@ -15,16 +22,16 @@
 			}
 		},
 		{
-			"path": "pages/index/index",
+			"path": "pages/search/search",
 			"style": {
-				"navigationBarTitleText": "首页",
+				"navigationBarTitleText": "搜索",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
 		{
-			"path": "pages/mine/mine",
+			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "我的",
+				"navigationBarTitleText": "首页",
 				"backgroundColor": "#DBE4F3"
 			}
 		}

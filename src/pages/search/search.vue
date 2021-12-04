@@ -89,6 +89,7 @@ export default {
 <style lang="less" scoped>
 .search-page {
   padding-top: 300upx;
+  min-height: calc(100vh - 360upx);
 }
 .filter {
   position: fixed;
