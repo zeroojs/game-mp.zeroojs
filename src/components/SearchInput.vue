@@ -1,13 +1,28 @@
 <template>
   <view class="search-input">
-    <input placeholder="请输入游戏名称" class="search-inner__input" />
+    <input v-model="content" placeholder="请输入游戏名称" class="search-inner__input" />
     <image src="/static/tabbar/search.png" class="search-icon"></image>
   </view>
 </template>
 
 <script>
+import { ref, watch } from 'vue'
 export default {
+  // props: {
+  //   keywords: {
+  //     type: String,
+  //     default: ''
+  //   }
+  // },
+  // emits: ['update:keywords'],
+  setup(props, { emit }) {
+    const content = ref('')
 
+    watch(() => content.value, (val) => {
+      emit('change', val)
+    })
+    return { content }
+  }
 }
 </script>
 

@@ -1,6 +1,7 @@
 <template>
-  <view class="like-list app-page">
-    <view class="list">
+  <view class="like-list">
+    <app-navbar title="我喜欢" />
+    <view class="list app-page">
       <view
         v-for="likeItem in list"
         :key="likeItem.id"
@@ -35,10 +36,17 @@
           </List>
         </view>
         <view class="list-ite__footer">
-          <cover-view class="expand-btn">
+          <cover-view class="expand-btn" :class="{ 'is-expand': likeItem.expand }" @tap="toggleExpand(likeItem)">
             <!-- <cover-view>∧</cover-view> -->
-            <cover-view>展开</cover-view>
-            <cover-view>∨</cover-view>
+            <template v-if="!likeItem.loading">
+              <cover-view>{{ likeItem.expand ? '折叠' : '展开' }}</cover-view>
+              <cover-image v-if="!likeItem.expand" src="/static/like/expand.png" class="expand-image"></cover-image>
+              <cover-image v-else src="/static/like/fold.png" class="expand-image"></cover-image>
+            </template>
+            <view v-if="likeItem.loading" class="loading-box">
+              <view class="loading-box__inner"></view>
+              <view class="loading-box__mask"></view>
+            </view>
           </cover-view>
         </view>
       </view>
@@ -49,16 +57,35 @@
 import { defineComponent, ref } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
+import AppNavbar from '@/components/Navbar'
 
 export default defineComponent({
   name: 'LikeList',
   components: {
     List,
-		ListItem
+		ListItem,
+    AppNavbar
   },
   setup() {
+    const { list } = useList()
+
+    const toggleExpand = async (likeItem) => {
+      if (likeItem.expand) {
+        likeItem.products = likeItem.products.filter((_, index) => index < 2)
+        likeItem.expand = false
+        return
+      }
+      likeItem.loading = true
+      const timer = setTimeout(() => {
+        likeItem.products = likeItem.fullProducts
+        likeItem.expand = true
+        likeItem.loading = false
+        clearTimeout(timer)
+      }, 1500)
+    }
     return {
-      ...useList()
+      list,
+      toggleExpand
     }
   }
 })
@@ -74,7 +101,8 @@ function useList() {
         vendorId: '', // 第三方平台 id
         products: [
           { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
+          { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+          { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
         ]
       },
       {
@@ -83,14 +111,22 @@ function useList() {
         vendorId: '', // 第三方平台 id
         products: [
           { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
+          { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+          { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+          { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
         ]
       },
-    ]
+    ].map(item => {
+      const fullProducts = item.products
+      // 显示两条数据
+      item.products = item.products.filter((_, index) => index < 2)
+      return { ...item, expand: false, fullProducts, loading: false }
+    })
   }
   getList()
   return { list, getList }
 }
+
 </script>
 
 <style lang="less" scoped>
@@ -134,6 +170,9 @@ function useList() {
   margin-right: 50upx;
   padding: 10upx 0;
 }
+.app-page {
+  padding-top: calc(64px + 40upx);
+}
 .like-list {
   font-size: 30upx;
   .list-item {
@@ -142,27 +181,88 @@ function useList() {
     background: linear-gradient(145deg, fade(#6C63FF, 30), fade(#6C63FF, 10));
     border-radius: 20upx;
     padding: 20upx;
-    box-shadow: 18upx 18upx 50upx fade(#000, 20), 
-              -18upx -18upx 50upx fade(#6C63FF, 20);
+    // box-shadow: 18upx 18upx 50upx fade(#000, 20), 
+    //           -18upx -18upx 50upx fade(#6C63FF, 20);
+    box-shadow: 18upx 18upx 50upx fade(#000, 20),
+                -18upx -18upx 30upx fade(#6C63FF, 15);
+              
   }
   .list-item__body {
     padding-top: 30upx;
   }
+  // 加载效果
+  .loading-box {
+    width: 100upx;
+    height: 100upx;
+    // border-radius: 50%;
+    // border: 2px solid #6C63FF;
+    box-sizing: border-box;
+    background-color: #9d96fa;
+    // background-color: #6C63FF;
+    clip-path: circle(50upx);
+    position: relative;
+    .loading-box__inner {
+      width: 100%;
+      height: 100%;
+      // border-radius: 50%;
+      background-color: #6C63FF;
+      // border: 5px solid seagreen;
+      box-sizing: inherit;
+      // clip-path: circle(40upx);
+      clip-path: polygon(50% 50%, 100% 0, 150% 150%);
+      animation: 1s ease roate infinite;
+    }
+    .loading-box__mask {
+      position: absolute;
+      width: 80upx;
+      height: 80upx;
+      background: #ceccf0; // fade(#6C63FF, 30);
+      top: 10upx;
+      left: 10upx;
+      border-radius: 50%;
+    }
+  }
   .expand-btn {
-    height: 150upx;
+    // height: 150upx;
     width: 100%;
-    background: linear-gradient(to top, #6C63FF, transparent);
-    position: absolute;
-    bottom: 0;
-    left: 0;
+    // background: linear-gradient(to top, #6C63FF, fade(#FFF, 10));
+    // position: absolute;
+    // bottom: 0;
+    // left: 0;
     border-radius: 20upx;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
     flex-direction: column;
     color: #FFF;
     font-weight: 600;
     letter-spacing: 2px;
+    backdrop-filter: blur(3upx);
+    transition: backdrop-filter .3s ease;
+    &.is-expand {
+      flex-direction: column-reverse;
+      justify-content: flex-start;
+      padding-bottom: 10upx;
+      backdrop-filter: blur(0);
+    }
+  }
+  .expand-image {
+    width: 100upx;
+    height: 80upx;
+  }
+}
+
+@keyframes roate {
+  0% {
+    transform: rotate(0);
+    clip-path: polygon(50% 50%, 100% 0, 150% 50%);
+  }
+  50% {
+    clip-path: polygon(50% 50%, 100% 0, 350% 350%);
+  }
+  100% {
+    transform: rotate(360deg);
+    clip-path: polygon(50% 50%, 100% 0, 150% 50%);
   }
 }
 </style>

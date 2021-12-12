@@ -1,39 +1,66 @@
 <template>
-  <view class="profile">
-    <view class="profile-banner">
-      <!-- <image src="/static/logo.png" class="profile-banner-image"></image> -->
-    </view>
-    <cover-view class="user-info">
+  <view class="profile" :class="{ 'is-login': isLogin }">
+    <view v-if="isLogin" class="user-info">
       <!-- 头像 -->
-      <cover-view class="avatar">
-        <cover-view class="avatar-container">
-          <cover-image src="/static/logo.png" class="avatar-image"></cover-image>
-        </cover-view>
-      </cover-view>
-      <cover-view class="username">哇哈哈</cover-view>
-    </cover-view>
-    <cover-view class="profile-info">
-      <cover-view class="content-title">联系我们</cover-view>
-      <cover-view class="content flex">
-        <cover-image class="service-user" src="/static/dpx.png"></cover-image>
-        <cover-image class="service-site" src="/static/dpx.png"></cover-image>
-      </cover-view>
-      <cover-button class="like-btn">心愿清单</cover-button>
-      <cover-button class="sign-out-btn">退出登录</cover-button>
-    </cover-view>
+      <view class="avatar">
+        <view class="avatar-container">
+          <image :src="user.avatarUrl" class="avatar-image"></image>
+        </view>
+      </view>
+      <view class="username">{{ user.nickName }}</view>
+    </view>
+    <view class="profile-info">
+      <view class="content-title">联系我们</view>
+      <view class="content flex">
+        <image class="service-user" src="/static/dpx.png"></image>
+        <image class="service-site" src="/static/dpx.png"></image>
+      </view>
+      <div class="btn-group flex">
+        <button v-if="isLogin" class="like-btn" @tap="toLikeList()">心愿清单</button>
+        <button v-if="isLogin" class="sign-out-btn" @tap="signout()">退出登录</button>
+        <button v-else class="sign-out-btn" @tap="signin()">立即登录</button>
+      </div>
+    </view>
   </view>
 </template>
 
-<script>
-export default {
+<script setup>
+import { defineComponent } from 'vue'
+import { useSign } from '@/utils/sign'
 
-}
+export default defineComponent({
+  setup() {
+    const { signin, signout, user, isLogin } = useSign()
+    const toLikeList = () => {
+      uni.navigateTo({ url: '/pages/like/list' })
+    }
+
+    return {
+      user,
+      isLogin,
+      signin,
+      signout,
+      toLikeList
+    }
+  }
+})
 </script>
 
 <style lang="less" scoped>
+.flex {
+  display: flex;
+  align-items: center;
+}
 .profile {
-  background-color: #DBE4F3;
+  background: #DBE4F3;
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  &.is-login {
+    display: initial
+  }
   .profile-banner {
     height: 60vh;
     // filter: blur(30upx);
@@ -44,18 +71,17 @@ export default {
   .user-info {
     width: 100%;
     box-sizing: border-box;
-    position: fixed;
-    top: 0;
-    left: 0;
     padding: 40upx;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     flex-direction: column;
     height: 50vh;
+    background: #DBE4F3;
   }
   .avatar {
     border-radius: 50%;
+    overflow: hidden;
     box-shadow: 0 0 5upx 20upx fade(#6C63FF, 40),
                 0 0 10upx 40upx fade(#6C63FF, 30),
                 0 0 30upx 100upx fade(#6C63FF, 10);
@@ -68,37 +94,41 @@ export default {
     box-shadow: 10upx 10upx 15upx fade(#000, 30), 
               -10upx -10upx 15upx fade(#000, 10);
   }
+  .avatar-image {
+    width: 140upx;
+    height: 140upx;
+  }
   .username {
     margin-top: 100upx;
     font-weight: bold;
   }
+  .btn-group {
+    margin-top: 40upx;
+    justify-content: center;
+  }
   .like-btn,
   .sign-out-btn {
-    position: fixed;
-    right: 50%;
-    bottom: 40upx;
-    transform: translateX(110%);
     background-color: #6C63FF;
     color: #FFF;
-    padding: 20upx 40upx;
+    font-size: 30upx;
+    min-width: 200upx;
+    margin: 0 0 0 30upx;
+    // padding: 20upx 40upx;
     border-radius: 50upx;
     box-shadow: 10upx 10upx 15upx fade(#000, 30), 
               -10upx -10upx 15upx fade(#000, 10);
               
   }
   .like-btn {
-    transform: translateX(-10%);
+    margin-left: 0;
+    margin-right: 30upx;
   }
   .profile-info {
     height: 50vh;
     width: 100%;
     padding: 80upx 40upx 40upx;
     box-sizing: border-box;
-    // background-color: #DBE4F3;
-    // border-radius: 50upx 50upx 0 0;
-    // box-shadow: 0 0 20upx fade(#000, 10);
-    position: absolute;
-    top: 50vh;
+    background: #DBE4F3;
     .content-title {
       text-align: center;
       margin-bottom: 40upx;
@@ -116,6 +146,7 @@ export default {
     }
     [class*="service-"] {
       width: 200upx;
+      height: 200upx;
     }
   }
 }

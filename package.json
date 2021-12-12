@@ -59,6 +59,7 @@
     "@dcloudio/uni-quickapp-webview": "^2.0.0",
     "@dcloudio/uni-stat": "^2.0.0",
     "@vue/shared": "^3.0.0",
+    "axios": "^0.24.0",
     "core-js": "^3.6.5",
     "flyio": "^0.6.2",
     "less": "^4.1.2",

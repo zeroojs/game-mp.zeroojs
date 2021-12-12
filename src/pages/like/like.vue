@@ -20,18 +20,22 @@
         </view>
       </div>
 		</List>
-    <cover-view class="action-group flex bewteen">
+    <view v-if="!list.length" class="empty-tips">
+      <view @tap="toSearch()" class="link-style">去这里 -></view>
+      选择你心爱的游戏吧！
+    </view>
+    <cover-view v-if="list.length" class="action-group flex bewteen">
       <cover-view class="flex">
         <cover-view class="flex select-all-btn" @click="selectedAll()">
           <cover-view :class="{ active: isSelectedAll }" class="select-button"></cover-view>
           全选
         </cover-view>
-        <cover-view class="del-btn">删除</cover-view>
+        <cover-view class="del-btn" @tap="handleRemove()">删除</cover-view>
       </cover-view>
       <cover-view class="flex">
         <cover-view class="flex">
           <cover-view class="size-text__label">总计容量:</cover-view>
-          <cover-view class="size-text">0.00GB</cover-view>
+          <cover-view class="size-text">{{ countSize }}GB</cover-view>
         </cover-view>
         <cover-view class="primary-btn">确定</cover-view>
       </cover-view>
@@ -40,10 +44,11 @@
 </template>
 
 <script>
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import SearchInput from '@/components/SearchInput'
+import { productRestful } from '@/api/product'
 
 export default {
   name: 'LikePage',
@@ -54,21 +59,36 @@ export default {
   },
   setup() {
     const { isRemove, remove } = useRemove()
-    const { list, delLike, isSelected, selectedLike, isSelectedAll, selectedAll } = useLike()
+    const {
+      list,
+      selected,
+      countSize,
+      delLike,
+      isSelected,
+      selectedLike,
+      isSelectedAll,
+      selectedAll
+    } = useLike()
 
     const handleRemove = async (item) => {
-      await remove(item)
+      await remove(item || toRaw(selected.value), list)
       delLike(item)
-      console.log('移除 Item')
+    }
+
+    // 前往搜索
+    const toSearch = () => {
+      uni.switchTab({ url: '/pages/search/search' })
     }
     return {
       list,
+      countSize,
       isRemove,
       handleRemove,
       isSelected,
       selectedLike,
       isSelectedAll,
-      selectedAll
+      selectedAll,
+      toSearch
     }
   }
 }
@@ -76,35 +96,72 @@ export default {
 function useLike() {
   const list = ref([])
   const selected = ref([])
+  // 总容量
+  const countSize = computed(() => {
+    const result = selected.value.reduce((t, p) => {
+      return t + p.size
+    }, 0)
+    return result === 0 ? result.toFixed(2) : result
+  })
 
   // 获取喜欢列表数据
   const getList = async () => {
-    list.value = [
-      { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-      { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-      { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-      { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
-    ]
-    list.value = list.value.map(item => ({ ...item, isRemove: false }))
+    const result = await productRestful({
+      filter: {
+        order: 'upeateAt DESC',
+        where: { isLike: true }
+      }
+    })
+    console.log(result)
+    // list.value = [
+    //   { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+    //   { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+    //   { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
+    //   { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
+    // ]
+    list.value = result.map(item => ({ ...item, isRemove: false }))
   }
   getList()
 
+  // 批量删除
+  const delLikes = async () => {
+    list.value = list.value.filter(l => {
+      const isDel = !selected.value.some(sl => sl.id === l.id)
+      if (!isDel) {
+        removeSelectedLikeItem(l.id)
+      }
+      return isDel
+    })
+  }
+
   // 删除某一项
   const delLike = async (item) => {
+    if (!item) {
+      delLikes()
+      return
+    }
     list.value = list.value.filter(l => l.id !== item.id)
+    if (selected.value.some(sl => sl.id === item.id)) {
+      removeSelectedLikeItem(item.id)
+    }
   }
 
   // 选中
-  const selectedLike = ({ id }) => {
-    if (isSelected({ id })) {
-      selected.value = selected.value.filter(i => i !== id)
+  const selectedLike = (item) => {
+    const { id } = item
+    if (isSelected(item)) {
+      removeSelectedLikeItem(id)
       return
     }
-    selected.value.push(id)
+    selected.value.push(item)
+  }
+  // 移除选中
+  const removeSelectedLikeItem = (id) => {
+    selected.value = selected.value.filter(i => i.id !== id)
   }
 
   // 判断是否选择项
-  const isSelected = ({ id }) => selected.value.includes(id)
+  const isSelected = ({ id }) => selected.value.some(i => i.id === id)
 
   // 是否已全选
   const isSelectedAll = computed(() => selected.value.length === list.value.length)
@@ -115,29 +172,50 @@ function useLike() {
       selected.value = []
       return
     }
-    selected.value = list.value.map(i => i.id)
+    selected.value = list.value
   }
-  return { list, delLike, getList, selectedLike, isSelected, isSelectedAll, selectedAll }
+
+  // 加入到我喜欢列表
+  const addLikes = () => {
+
+  }
+  return { list, countSize, selected, addLikes, delLike, getList, selectedLike, isSelected, isSelectedAll, selectedAll }
 }
 
 // 移除动画效果
-function useRemove(props) {
+function useRemove() {
   const isRemove = ref(false)
   let timer = 0
   const remove = (item) => {
-    // isRemove.value = true
     item.isRemove = true
     return new Promise(resolve => {
       timer = setTimeout(() => {
-        // isRemove.value = false
         item.isRemove = false
-        clearTimeout(timer)
-        timer = 0
-        resolve()
+        resolve(item)
       }, 800)
     })
+      .then(() => {
+        timer = 0
+        clearTimeout(timer)
+        return item
+      })
   }
-  return { isRemove, remove }
+  const batchRemove = (items = [], list) => {
+    const result = []
+    list.value.forEach(item => {
+      if (items.some(sl => sl.id === item.id)) {
+        result.push(remove(item))
+      }
+    })
+    return Promise.all(result)
+  }
+
+  const preRemove = async (select, list) => {
+    const isArr = select instanceof Array
+    const result = await (isArr ? batchRemove(select, list) : remove(select))
+    return result
+  }
+  return { isRemove, remove: preRemove }
 }
 </script>
 
@@ -152,6 +230,14 @@ function useRemove(props) {
 .like-page {
   padding-bottom: 60upx;
   min-height: calc(100vh - 100upx);
+}
+.empty-tips {
+  text-align: center;
+  font-size: 26upx;
+  color: #999;
+}
+.link-style {
+  color: #6C63FF;
 }
 .select-button {
   width: 30upx;

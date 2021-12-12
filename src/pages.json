@@ -1,9 +1,9 @@
 {
 	"pages": [
 		{
-			"path": "pages/like/list",
+			"path": "pages/search/search",
 			"style": {
-				"navigationBarTitleText": "我想要",
+				"navigationBarTitleText": "寻找宝贝",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
@@ -17,21 +17,22 @@
 		{
 			"path": "pages/like/like",
 			"style": {
-				"navigationBarTitleText": "我想要",
+				"navigationBarTitleText": "",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
 		{
-			"path": "pages/search/search",
+			"path": "pages/like/list",
 			"style": {
-				"navigationBarTitleText": "搜索",
-				"backgroundColor": "#DBE4F3"
+				"navigationBarTitleText": "我想要",
+				"backgroundColor": "#DBE4F3",
+				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "首页",
+				"navigationBarTitleText": "",
 				"backgroundColor": "#DBE4F3"
 			}
 		}
