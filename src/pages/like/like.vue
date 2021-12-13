@@ -15,15 +15,22 @@
             :name="item.name"
             :size="item.size"
             :src="item.avatar"
+            :is-login="isLogin"
             @action="handleRemove(item)"
           />
         </view>
       </div>
 		</List>
-    <view v-if="!list.length" class="empty-tips">
-      <view @tap="toSearch()" class="link-style">去这里 -></view>
-      选择你心爱的游戏吧！
-    </view>
+    <div class="tips-container" :class="{ 'is-login': isLogin }">
+      <view v-if="!isLogin"></view>
+      <view v-if="!list.length" class="empty-tips">
+        <view @tap="toSearch()" class="link-style">去这里 -></view>
+        选择你心爱的游戏吧！
+      </view>
+      <view v-if="!isLogin" class="login-tips">
+        <z-button @tap="signin()">立即登录</z-button>
+      </view>
+    </div>
     <cover-view v-if="list.length" class="action-group flex bewteen">
       <cover-view class="flex">
         <cover-view class="flex select-all-btn" @click="selectedAll()">
@@ -37,27 +44,40 @@
           <cover-view class="size-text__label">总计容量:</cover-view>
           <cover-view class="size-text">{{ countSize }}GB</cover-view>
         </cover-view>
-        <cover-view class="primary-btn">确定</cover-view>
+        <cover-view class="primary-btn" @tap="addLikes()">确定</cover-view>
       </cover-view>
     </cover-view>
   </view>
 </template>
 
 <script>
-import { computed, ref, toRaw } from 'vue'
+import { computed, ref, toRaw, watch } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import SearchInput from '@/components/SearchInput'
-import { productRestful } from '@/api/product'
+import ZButton from '@/components/ZButton.vue'
+import { productRestful, inventoryRestful } from '@/api'
+import { useSign } from '@/utils/sign'
 
 export default {
   name: 'LikePage',
   components: {
     List,
 		ListItem,
-    SearchInput
+    SearchInput,
+    ZButton
+  },
+  onShow() {
+    this.isLogin = !!this.getLocaleUser()
+    if (this.isLogin) {
+      this.getList()
+    } else {
+      this.list = []
+    }
   },
   setup() {
+    const { isLogin: loginFlag, signin, getLocaleUser } = useSign()
+    const isLogin = ref()
     const { isRemove, remove } = useRemove()
     const {
       list,
@@ -67,8 +87,18 @@ export default {
       isSelected,
       selectedLike,
       isSelectedAll,
-      selectedAll
+      selectedAll,
+      addLikes,
+      getList
     } = useLike()
+
+    watch(() => loginFlag.value, (val) => {
+      isLogin.value = val
+      getList()
+      if (!val) {
+        list.value = []
+      }
+    }, { immediate: true, deep: true })
 
     const handleRemove = async (item) => {
       await remove(item || toRaw(selected.value), list)
@@ -88,7 +118,12 @@ export default {
       selectedLike,
       isSelectedAll,
       selectedAll,
-      toSearch
+      toSearch,
+      addLikes,
+      getList,
+      isLogin,
+      signin,
+      getLocaleUser
     }
   }
 }
@@ -112,7 +147,6 @@ function useLike() {
         where: { isLike: true }
       }
     })
-    console.log(result)
     // list.value = [
     //   { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
     //   { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
@@ -128,6 +162,7 @@ function useLike() {
     list.value = list.value.filter(l => {
       const isDel = !selected.value.some(sl => sl.id === l.id)
       if (!isDel) {
+        productRestful({ id: l.id, isLike: false }, 'PUT')
         removeSelectedLikeItem(l.id)
       }
       return isDel
@@ -140,6 +175,7 @@ function useLike() {
       delLikes()
       return
     }
+    productRestful({ id: item.id, isLike: false }, 'PUT')
     list.value = list.value.filter(l => l.id !== item.id)
     if (selected.value.some(sl => sl.id === item.id)) {
       removeSelectedLikeItem(item.id)
@@ -175,9 +211,17 @@ function useLike() {
     selected.value = list.value
   }
 
-  // 加入到我喜欢列表
-  const addLikes = () => {
-
+  // 加入到我喜欢清单
+  const addLikes = async () => {
+    const params = {
+      total: selected.value.length,
+      totalSize: countSize.value,
+      products: selected.value,
+      vendorId: ''
+    }
+    if (!params.total) return
+    await inventoryRestful(params, 'POST')
+    uni.navigateTo({ url: '/pages/like/list' })
   }
   return { list, countSize, selected, addLikes, delLike, getList, selectedLike, isSelected, isSelectedAll, selectedAll }
 }
@@ -225,6 +269,15 @@ function useRemove() {
   align-items: center;
   &.bewteen {
     justify-content: space-between;
+  }
+}
+.tips-container {
+  .flex;
+  min-height: calc(100vh - 100upx);
+  flex-direction: column;
+  justify-content: space-between;
+  &.is-login {
+    justify-content: center;
   }
 }
 .like-page {

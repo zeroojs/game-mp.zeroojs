@@ -1,16 +1,9 @@
 {
 	"pages": [
 		{
-			"path": "pages/search/search",
+			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "寻找宝贝",
-				"backgroundColor": "#DBE4F3"
-			}
-		},
-		{
-			"path": "pages/mine/mine",
-			"style": {
-				"navigationBarTitleText": "我的",
+				"navigationBarTitleText": "",
 				"backgroundColor": "#DBE4F3"
 			}
 		},
@@ -22,18 +15,25 @@
 			}
 		},
 		{
+			"path": "pages/mine/mine",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"backgroundColor": "#DBE4F3"
+			}
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "寻找宝贝",
+				"backgroundColor": "#DBE4F3"
+			}
+		},
+		{
 			"path": "pages/like/list",
 			"style": {
 				"navigationBarTitleText": "我想要",
 				"backgroundColor": "#DBE4F3",
 				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/index/index",
-			"style": {
-				"navigationBarTitleText": "",
-				"backgroundColor": "#DBE4F3"
 			}
 		}
 	],

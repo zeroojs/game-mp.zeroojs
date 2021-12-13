@@ -2,4 +2,5 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import './style/index.less'
 
-createApp(App).mount()
+const app = createApp(App)
+app.mount()

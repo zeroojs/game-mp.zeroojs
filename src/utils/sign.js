@@ -3,11 +3,14 @@ import { ref, computed } from 'vue'
 export function useSign() {
   const user = ref({})
   const isLogin = computed(() => user.value.nickName)
-  const localeUser = uni.getStorageSync('_uo')
+  const getLocaleUser = () => uni.getStorageSync('_uo')
+  const localeUser = getLocaleUser()
   if (localeUser) {
     user.value = JSON.parse(localeUser)
   }
   const signin = async () => {
+    // 登录逻辑待补充
+    // 授权用户信息
     getUserInfo()
   }
 
@@ -29,5 +32,5 @@ export function useSign() {
       }
     })
   }
-  return { user, isLogin, signin, signout }
+  return { user, isLogin, getLocaleUser, signin, signout }
 }

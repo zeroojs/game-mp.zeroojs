@@ -29,6 +29,7 @@
 
 <script>
 import { defineComponent, onBeforeMount, ref } from 'vue'
+import { useSign } from '@/utils/sign'
 
 export default defineComponent({
   props: {
@@ -36,12 +37,18 @@ export default defineComponent({
     disabled: Boolean,
     name: String,
     src: String,
-    size: String
+    size: String,
+    isLogin: Boolean
   },
   emits: ['action'],
   setup(props, { emit }) {
+    const { signin } = useSign()
     const { move, style, actionMinus, isRestart, addShow } = useMove()
     const handleActionClick = (...rest) => {
+      if (!props.isLogin) {
+        signin()
+        return
+      }
       move(...rest)
       emit('action', ...rest)
     }

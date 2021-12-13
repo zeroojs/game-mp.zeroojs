@@ -9,18 +9,24 @@
       >
         <view class="list-item__head">
           <view class="flex between">
-            <text>编号：123456</text>
-            <button class="btn text">点我复制编号</button>
+            <view class="like-unique">{{ likeItem.id }}</view>
+            <button class="btn text" @tap="handleClipboard(likeItem.id)">复制编号</button>
           </view>
           <view class="count">
             选择了
-            <text class="brage">100</text>
+            <text class="brage">{{ likeItem.total }}</text>
             个游戏共计
-            <text class="brage">100 GB</text>
+            <text class="brage">{{ likeItem.totalSize }} GB</text>
           </view>
           <view class="flex input-container">
-            <input class="input" placeholder="粘贴您的淘宝编号" />
-            <button class="btn">保存</button>
+            <input
+              v-if="likeItem.isEdit"
+              v-model="likeItem.newVendorId"
+              class="input"
+              placeholder="粘贴您第三方平台编号"
+            />
+            <view v-else class="vendor-container">{{ likeItem.vendorId }}</view>
+            <button class="btn" @tap="saveVendor(likeItem)">{{ likeItem.isEdit ? '保存' : '编辑' }}</button>
           </view>
         </view>
         <view class="list-item__body">
@@ -35,7 +41,7 @@
             />
           </List>
         </view>
-        <view class="list-ite__footer">
+        <view v-show="likeItem.total > 2" class="list-ite__footer">
           <cover-view class="expand-btn" :class="{ 'is-expand': likeItem.expand }" @tap="toggleExpand(likeItem)">
             <!-- <cover-view>∧</cover-view> -->
             <template v-if="!likeItem.loading">
@@ -58,6 +64,8 @@ import { defineComponent, ref } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import AppNavbar from '@/components/Navbar'
+import { inventoryRestful } from '@/api'
+import { handleClipboard } from '@/utils/clipboard'
 
 export default defineComponent({
   name: 'LikeList',
@@ -67,7 +75,7 @@ export default defineComponent({
     AppNavbar
   },
   setup() {
-    const { list } = useList()
+    const { list, saveVendor } = useList()
 
     const toggleExpand = async (likeItem) => {
       if (likeItem.expand) {
@@ -85,7 +93,9 @@ export default defineComponent({
     }
     return {
       list,
-      toggleExpand
+      saveVendor,
+      toggleExpand,
+      handleClipboard
     }
   }
 })
@@ -94,37 +104,40 @@ function useList() {
   const list = ref([])
 
   const getList = async () => {
-    list.value = [
-      {
-        id: 1,
-        noaid: 'abcdefg',
-        vendorId: '', // 第三方平台 id
-        products: [
-          { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
-        ]
-      },
-      {
-        id: 2,
-        noaid: 'abcdefg',
-        vendorId: '', // 第三方平台 id
-        products: [
-          { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-          { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
-        ]
-      },
-    ].map(item => {
+    const result = await inventoryRestful()
+    list.value = result.map(item => {
       const fullProducts = item.products
       // 显示两条数据
       item.products = item.products.filter((_, index) => index < 2)
-      return { ...item, expand: false, fullProducts, loading: false }
+      return {
+        ...item,
+        expand: false,
+        fullProducts,
+        loading: false,
+        newVendorId: item.vendorId,
+        isEdit: !item.vendorId
+      }
     })
   }
   getList()
-  return { list, getList }
+
+  // 保存第三方平台编号
+  const saveVendor = async (likeItem) => {
+    if (!likeItem.newVendorId) return
+    if (!likeItem.isEdit) {
+      likeItem.isEdit = true
+      likeItem.newVendorId = likeItem.vendorId
+      return
+    }
+    const params = {
+      id: likeItem.id,
+      vendorId: likeItem.newVendorId
+    }
+    await inventoryRestful(params, 'PUT')
+    likeItem.isEdit = false
+    likeItem.vendorId = likeItem.newVendorId
+  }
+  return { list, getList, saveVendor }
 }
 
 </script>
@@ -135,6 +148,9 @@ function useList() {
   align-items: center;
   &.between {
     justify-content: space-between;
+  }
+  &.top {
+    align-items: flex-start;
   }
 }
 .btn {
@@ -155,6 +171,10 @@ function useList() {
   }
 }
 
+.like-unique {
+  color: fade(#333333, 50);
+}
+
 .count {
   margin: 20upx 0;
   .brage {
@@ -164,17 +184,26 @@ function useList() {
     margin: 0 10upx;
   }
 }
-.input {
+.input,
+.vendor-container {
   border-bottom: 1px solid #6C63FF;
   flex: 1;
   margin-right: 50upx;
   padding: 10upx 0;
+  box-sizing: border-box;
+}
+.vendor-container {
+  border-bottom: unset;
+  color: #6C63FF;
 }
 .app-page {
   padding-top: calc(64px + 40upx);
 }
 .like-list {
   font-size: 30upx;
+  .app-page {
+    min-height: calc(100vh - 64px - 60upx);
+  }
   .list-item {
     position: relative;
     margin-bottom: 30px;

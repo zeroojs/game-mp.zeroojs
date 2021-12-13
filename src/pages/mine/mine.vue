@@ -12,25 +12,35 @@
     <view class="profile-info">
       <view class="content-title">联系我们</view>
       <view class="content flex">
-        <image class="service-user" src="/static/dpx.png"></image>
-        <image class="service-site" src="/static/dpx.png"></image>
+        <image class="service-user" src="http://img-cloud.zeroojs.com/image/game-mp/my-wechat.png"></image>
+        <image class="service-site" src="http://img-cloud.zeroojs.com/image/game-mp/project-url.png"></image>
       </view>
       <div class="btn-group flex">
-        <button v-if="isLogin" class="like-btn" @tap="toLikeList()">心愿清单</button>
-        <button v-if="isLogin" class="sign-out-btn" @tap="signout()">退出登录</button>
-        <button v-else class="sign-out-btn" @tap="signin()">立即登录</button>
+        <z-button v-if="isLogin" class="like-btn" @tap="toLikeList()">心愿清单</z-button>
+        <z-button v-if="isLogin" class="sign-out-btn" @tap="signout()">退出登录</z-button>
+        <z-button v-else class="sign-out-btn" @tap="signin()">立即登录</z-button>
       </div>
     </view>
   </view>
 </template>
 
 <script setup>
-import { defineComponent } from 'vue'
+import { defineComponent, watch } from 'vue'
 import { useSign } from '@/utils/sign'
+import ZButton from '@/components/ZButton.vue'
 
 export default defineComponent({
+  components: {
+    ZButton
+  },
+  onShow() {
+    const localUser = this.getLocaleUser()
+    if (localUser) {
+      this.user = JSON.parse(localUser)
+    }
+  },
   setup() {
-    const { signin, signout, user, isLogin } = useSign()
+    const { signin, signout, user, isLogin, getLocaleUser } = useSign()
     const toLikeList = () => {
       uni.navigateTo({ url: '/pages/like/list' })
     }
@@ -40,7 +50,8 @@ export default defineComponent({
       isLogin,
       signin,
       signout,
-      toLikeList
+      toLikeList,
+      getLocaleUser
     }
   }
 })
@@ -106,18 +117,8 @@ export default defineComponent({
     margin-top: 40upx;
     justify-content: center;
   }
-  .like-btn,
   .sign-out-btn {
-    background-color: #6C63FF;
-    color: #FFF;
-    font-size: 30upx;
-    min-width: 200upx;
     margin: 0 0 0 30upx;
-    // padding: 20upx 40upx;
-    border-radius: 50upx;
-    box-shadow: 10upx 10upx 15upx fade(#000, 30), 
-              -10upx -10upx 15upx fade(#000, 10);
-              
   }
   .like-btn {
     margin-left: 0;

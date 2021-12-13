@@ -4,10 +4,11 @@
       <view class="filter-body">
         <SearchInput @change="handleSearchChange" />
         <TagGroup>
-          <Tag @tap="handleTagTap()">全部</Tag>
+          <Tag @tap="handleTagTap()" :active="!selectType">全部</Tag>
           <Tag
             v-for="item in types"
             :key="item"
+            :active="selectType === item.id"
             @tap="handleTagTap(item)"
           >
             {{ item.name }}
@@ -24,9 +25,13 @@
         :size="item.size"
         :src="item.avatar"
         :is-minus="item.isLike"
+        :is-login="isLogin"
         @action="handleAction(item)"
       />
 		</List>
+    <view v-if="!list.length" class="empty-tips">
+      抱歉，没有找到你要的宝贝！
+    </view>
   </view>
 </template>
 
@@ -39,6 +44,7 @@ import SearchInput from '@/components/SearchInput'
 import { ref, toRaw, watch } from 'vue'
 import { productRestful, fetchProductTypeAction } from '@/api/product'
 import { delay } from '@/utils'
+import { useSign } from '@/utils/sign'
 
 export default {
   components: {
@@ -49,20 +55,29 @@ export default {
     SearchInput
   },
   onShow() {
+    this.isLogin = !!this.getLocaleUser()
     this.getList()
   },
   setup() {
     const list = ref([])
     const types = ref([])
     const keywords = ref('')
+    const selectType = ref('')
+    const { isLogin: loginFlag, getLocaleUser } = useSign()
+    const isLogin = ref()
+    watch(() => loginFlag.value, (val) => {
+      isLogin.value = val
+      getList()
+    }, { immediate: true, deep: true })
+
     const handleAction = async (item) => {
       const data = toRaw(item)
       await productRestful({ id: data.id, isLike: !data.isLike }, 'PUT')
-      item.isLike = !item.isLike
+      item.isLike = !data.isLike
     }
 
     // 获取产品列表
-    const getList = async (params) => {
+    async function getList(params) {
       const filter = params && params.filter ? params.filter : {}
       if (keywords.value) {
         filter.where = {
@@ -88,7 +103,6 @@ export default {
       // ]
       list.value = list.value.map(item => ({ ...item, isRemove: false }))
     }
-    getList()
 
     // 获取类型列表
     const fetchProductType = async () => {
@@ -99,8 +113,9 @@ export default {
 
     // 分类查询
     const handleTagTap = (type) => {
+      selectType.value = type ? type.id : ''
       const params = !type ? {} : {
-        filter: { where: { type: { like: type } } }
+        filter: { where: { type: { like: type.id } } }
       }
       getList(params)
     }
@@ -121,10 +136,13 @@ export default {
       list,
       types,
       keywords,
+      selectType,
       getList,
       handleAction,
       handleTagTap,
-      handleSearchChange
+      handleSearchChange,
+      isLogin,
+      getLocaleUser
     }
   }
 }
@@ -135,6 +153,14 @@ export default {
   padding-top: 300upx;
   min-height: calc(100vh - 320upx);
   background-color: #DBE4F3;
+}
+.empty-tips {
+  min-height: 50vh;
+  font-size: 26upx;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .filter {
   position: fixed;

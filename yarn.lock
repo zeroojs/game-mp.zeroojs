@@ -1021,9 +1021,9 @@
     stricter-htmlparser2 "^3.9.6"
 
 "@dcloudio/uni-mp-360@^2.0.0":
-  version "2.0.1-alpha-33120211210001"
-  resolved "https://registry.npmmirror.com/@dcloudio/uni-mp-360/download/@dcloudio/uni-mp-360-2.0.1-alpha-33120211210001.tgz#c1898a240e8c2df270fd7293669a4887e4af9c80"
-  integrity sha512-94oD8XFEyxd4Z2SoNeHdswPStDbC29l0vkL8n6SIkz63s9mX2mcIK2sjycanpwRDCI8fWkx6+aHEFPYlPuBWvw==
+  version "2.0.1-alpha-33120211213001"
+  resolved "https://registry.npmmirror.com/@dcloudio/uni-mp-360/download/@dcloudio/uni-mp-360-2.0.1-alpha-33120211213001.tgz#b1045a92e8d016d40ea6f62fcfaab8e730d4dfd9"
+  integrity sha512-qQZNWqIgSdJS7Z1OEmNOnl5L+3GXjR6jQTqAcyBQ3fbEzVtpMFAV/M2hiTEo2PQJqpK2NzwxAAml2gumUUU/pw==
 
 "@dcloudio/uni-mp-alipay@^2.0.0":
   version "2.0.0"
