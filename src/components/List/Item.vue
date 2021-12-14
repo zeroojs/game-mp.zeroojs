@@ -7,8 +7,9 @@
       <view class="title">{{ name }}</view>
       <view class="brage">{{ size }} GB</view>
     </view>
+    <!-- v-if="!isMinus && !disabled" -->
     <view
-      v-if="!isMinus && !disabled"
+      v-if="!actionMinus"
       class="action add"
       :class="{ hide: actionMinus, 'is-restart': isRestart, 'is-show': addShow && !isRestart }"
       :style="style"
@@ -16,8 +17,9 @@
     >
       +
     </view>
+    <!-- v-if="(actionMinus || isMinus) && !disabled" -->
     <view
-      v-if="(actionMinus || isMinus) && !disabled"
+      v-if="actionMinus && !disabled"
       class="action minus"
       :class="{ 'no-animate': isMinus }"
       @click.stop="handleActionClick"
@@ -28,7 +30,7 @@
 </template>
 
 <script>
-import { defineComponent, onBeforeMount, ref } from 'vue'
+import { defineComponent, onBeforeMount, ref, watch } from 'vue'
 import { useSign } from '@/utils/sign'
 
 export default defineComponent({
@@ -43,7 +45,7 @@ export default defineComponent({
   emits: ['action'],
   setup(props, { emit }) {
     const { signin } = useSign()
-    const { move, style, actionMinus, isRestart, addShow } = useMove()
+    const { move, style, actionMinus, isRestart, addShow } = useMove(props.isMinus)
     const handleActionClick = (...rest) => {
       if (!props.isLogin) {
         signin()
@@ -62,15 +64,19 @@ export default defineComponent({
   }
 })
 
-function useMove() {
+function useMove(isMinus = false) {
   const style = ref('')
-  const actionMinus = ref(false) // 标注已加入想要列表
+  const actionMinus = ref(isMinus) // 标注已加入想要列表
+  console.log('isMinus', isMinus)
   const isRestart = ref(false) // 标注回到最初位置
   const addShow = ref(false) // 添加按钮显示
   let timer = 0
   let reTimer = 0
   const move = (event) => {
+    // clearTimeout(timer)
+    // clearTimeout(reTimer)
     if (reTimer !== 0) return // 防止过快点击，当动画结束完才能点击
+    console.log('actionMinus.value', actionMinus.value)
     if (actionMinus.value) {
       actionMinus.value = false
       isRestart.value = false
@@ -80,14 +86,9 @@ function useMove() {
     const { offsetLeft: x } = event.target
     const [{ clientY }] = event.touches
     const { screenWidth: winWidth, screenHeight: winHeight } = uni.getSystemInfoSync()
-    // const winHeight = uni.getSystemInfoSync().screenHeight
-    // const winWidth = uni.getSystemInfoSync().screenWidth
     style.value = `position:fixed;left:${x}px;top:${clientY - 12}px;`
-    // style.value = `position:fixed;left:${x}px;bottom:${clientY - 140}px;`
     timer = setTimeout(() => {
-      // style.value = `position:fixed;top:1000px;bottom:unset;left:180px;`
       style.value = `position:fixed;top:${winHeight}px;bottom:unset;left:${winWidth / 2}px;`
-      // style.value = `position:fixed;bottom:-50px;left:calc(50% + 10px);`
       actionMinus.value = true
       clearTimeout(timer)
       timer = 0

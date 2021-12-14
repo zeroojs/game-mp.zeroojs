@@ -51,22 +51,6 @@
                 :size="item.size"
                 :src="item.avatar"
               />
-              <ListItem
-                v-for="item in likeItem.products"
-                :key="item.id"
-                :disabled="true"
-                :name="item.name"
-                :size="item.size"
-                :src="item.avatar"
-              />
-              <ListItem
-                v-for="item in likeItem.products"
-                :key="item.id"
-                :disabled="true"
-                :name="item.name"
-                :size="item.size"
-                :src="item.avatar"
-              />
             </List>
           </view>
           <view v-show="likeItem.total > 2" class="list-ite__footer">
@@ -84,7 +68,7 @@
             </cover-view>
           </view>
         </view>
-        <list-bottom-tips v-if="list.length" :loading="pullUpLoading" />
+        <list-bottom-tips v-if="list.length > 3" :loading="pullUpLoading" />
       </view>
     </scroll-view>
   </view>

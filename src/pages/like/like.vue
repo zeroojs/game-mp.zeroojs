@@ -1,29 +1,43 @@
 <template>
-  <view class="app-page like-page">
-    <List>
-      <div
-        v-for="item in list"
-        :key="item.id"
-        :class="{ 'is-remove': item.isRemove }"
-        class="flex like-list-item"
-        @tap="selectedLike(item)"
-      >
-        <view class="select-button" :class="{ active: isSelected(item) }"></view>
-			  <view class="like-list-item__content">
-          <ListItem
-            :is-minus="true"
-            :name="item.name"
-            :size="item.size"
-            :src="item.avatar"
-            :is-login="isLogin"
-            @action="handleRemove(item)"
-          />
-        </view>
-      </div>
-		</List>
-    <div class="tips-container" :class="{ 'is-login': isLogin }">
+  <view class="like-page">
+    <scroll-view
+      v-if="list.length"
+      :scroll-y="true"
+      :refresher-enabled="true"
+      :refresher-triggered="pullDownLoading" 
+      refresher-background="#DBE4F3"
+      class="scroll"
+      @scrolltolower="handleScrolltolower"
+      @refresherpulling="handleRefresherpulling"
+    >
+      <view class="list-container">
+        <List>
+          <div
+            v-for="item in list"
+            :key="item.id"
+            :class="{ 'is-remove': item.isRemove }"
+            class="flex like-list-item"
+            @tap="selectedLike(item)"
+          >
+            <view class="select-button" :class="{ active: isSelected(item) }"></view>
+            <view class="like-list-item__content">
+              <ListItem
+                :is-minus="true"
+                :name="item.name"
+                :size="item.size"
+                :src="item.avatar"
+                :is-login="isLogin"
+                @action="handleRemove(item)"
+              />
+            </view>
+          </div>
+        </List>
+        <ListBottomTips v-if="list.length > 5" :loading="pullUpLoading" />
+      </view>
+    </scroll-view>
+    <div v-if="!list.length" class="tips-container" :class="{ 'is-login': isLogin }">
       <view v-if="!isLogin"></view>
-      <view v-if="!list.length" class="empty-tips">
+      <view class="empty-tips">
         <view @tap="toSearch()" class="link-style">去这里 -></view>
         选择你心爱的游戏吧！
       </view>
@@ -51,13 +65,15 @@
 </template>
 
 <script>
-import { computed, ref, toRaw, watch } from 'vue'
+import { computed, ref, toRaw, watch, reactive } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import SearchInput from '@/components/SearchInput'
-import ZButton from '@/components/ZButton.vue'
+import ZButton from '@/components/ZButton'
+import ListBottomTips from '@/components/ListBottomTips'
 import { productRestful, inventoryRestful } from '@/api'
 import { useSign } from '@/utils/sign'
+import { delay } from '@/utils'
 
 export default {
   name: 'LikePage',
@@ -65,7 +81,8 @@ export default {
     List,
 		ListItem,
     SearchInput,
-    ZButton
+    ZButton,
+    ListBottomTips
   },
   onShow() {
     this.isLogin = !!this.getLocaleUser()
@@ -89,7 +106,11 @@ export default {
       isSelectedAll,
       selectedAll,
       addLikes,
-      getList
+      getList,
+      pullUpLoading,
+      pullDownLoading,
+      handleScrolltolower,
+      handleRefresherpulling
     } = useLike()
 
     watch(() => loginFlag.value, (val) => {
@@ -123,7 +144,11 @@ export default {
       getList,
       isLogin,
       signin,
-      getLocaleUser
+      getLocaleUser,
+      pullUpLoading,
+      pullDownLoading,
+      handleScrolltolower,
+      handleRefresherpulling
     }
   }
 }
@@ -131,6 +156,12 @@ export default {
 function useLike() {
   const list = ref([])
   const selected = ref([])
+  const pullUpLoading = ref(false)
+  const pullDownLoading = ref(false)
+  const pagination = reactive({
+    limit: 6,
+    offset: 0
+  })
   // 总容量
   const countSize = computed(() => {
     const result = selected.value.reduce((t, p) => {
@@ -141,21 +172,59 @@ function useLike() {
 
   // 获取喜欢列表数据
   const getList = async () => {
+    // 分页
+    const pageParams = {
+      limit: pagination.limit,
+      skip: pagination.limit * pagination.offset
+    }
     const result = await productRestful({
       filter: {
         order: 'upeateAt DESC',
-        where: { isLike: true }
+        where: { isLike: true },
+        ...pageParams
       }
     })
-    // list.value = [
-    //   { id: 1, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-    //   { id: 2, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-    //   { id: 3, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' },
-    //   { id: 4, name: '极限竞速：地平线5 WIN10专用', size: 103, avatar: '/static/dpx.png' }
-    // ]
-    list.value = result.map(item => ({ ...item, isRemove: false }))
+    const listData = result.map(item => ({ ...item, isRemove: false }))
+    if (!list.value.length) {
+      list.value = listData
+      return
+    }
+    const tempList = toRaw(list.value)
+    listData.forEach(item => {
+      if (!tempList.some(l => l.id === item.id)) {
+        tempList.push(item)
+      }
+    })
+    list.value = tempList
   }
   getList()
+
+  // 上拉加载
+  const handleScrolltolower = () => {
+    pullUpLoading.value = true
+    delay(() => {
+      if (!pagination.offset) {
+        pagination.offset++
+      }
+      getList()
+        .then(() => {
+          pullUpLoading.value = false
+          pagination.offset++
+        })
+    }, 500)
+  }
+
+  // 下拉刷新
+  const handleRefresherpulling = async () => {
+    pullDownLoading.value = true
+    delay(() => {
+      pagination.offset = 0
+      getList()
+        .then(() => {
+          pullDownLoading.value = false
+        })
+    }, 500)
+  }
 
   // 批量删除
   const delLikes = async () => {
@@ -223,7 +292,22 @@ function useLike() {
     await inventoryRestful(params, 'POST')
     uni.navigateTo({ url: '/pages/like/list' })
   }
-  return { list, countSize, selected, addLikes, delLike, getList, selectedLike, isSelected, isSelectedAll, selectedAll }
+  return { 
+    list,
+    countSize,
+    selected,
+    addLikes,
+    delLike,
+    getList,
+    selectedLike,
+    isSelected,
+    isSelectedAll,
+    selectedAll,
+    pullUpLoading,
+    pullDownLoading,
+    handleScrolltolower,
+    handleRefresherpulling
+  }
 }
 
 // 移除动画效果
@@ -271,6 +355,11 @@ function useRemove() {
     justify-content: space-between;
   }
 }
+
+.list-container {
+  width: calc(100% - 80upx);
+  padding: 0 40upx;
+}
 .tips-container {
   .flex;
   min-height: calc(100vh - 100upx);
@@ -281,8 +370,13 @@ function useRemove() {
   }
 }
 .like-page {
+  padding-top: 40upx;
   padding-bottom: 60upx;
   min-height: calc(100vh - 100upx);
+  background-color: #DBE4F3;
+}
+.scroll {
+  max-height: calc(100vh - 180upx);
 }
 .empty-tips {
   text-align: center;
@@ -317,7 +411,7 @@ function useRemove() {
 .like-list-item {
   gap: 20upx;
   &.is-remove {
-    animation: slidRemove .8s cubic-bezier(.03,.63,.84,.24);
+    animation: slidRemove .6s cubic-bezier(.03,.63,.84,.24) forwards;
   }
   .select-button {
     margin-bottom: 40upx;
@@ -387,14 +481,16 @@ function useRemove() {
 @keyframes slidRemove {
   0% {
     opacity: 1;
-    transform: translateX(0);
+    // transform: translateX(0);
+    transform: scale(1);
   }
-  25% {
-    transform: translateX(-10%);
-  }
+  // 25% {
+  //   transform: translateX(-10%);
+  // }
   100% {
-    opacity: 0.6;
-    transform: translateX(150%);
+    opacity: 0;
+    transform: scale(.3);
+    // transform: translateX(150%);
   }
 }
 </style>
