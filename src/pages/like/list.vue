@@ -1,69 +1,101 @@
 <template>
   <view class="like-list">
-    <app-navbar title="我喜欢" />
-    <view class="list app-page">
+    <app-navbar :size="size" title="我喜欢" />
+    <scroll-view
+      class="scroll"
+      :scroll-y="true"
+      :refresher-enabled="true"
+      :refresher-triggered="pullDownLoading" 
+      refresher-background="#DBE4F3"
+      @scrolltolower="handleScrolltolower"
+      @refresherpulling="handleRefresherpulling"
+    >
       <view
-        v-for="likeItem in list"
-        :key="likeItem.id"
-        class="list-item"
+        class="list app-page"
+        :style="{ paddingTop: `${size.height}px` }"
       >
-        <view class="list-item__head">
-          <view class="flex between">
-            <view class="like-unique">{{ likeItem.id }}</view>
-            <button class="btn text" @tap="handleClipboard(likeItem.id)">复制编号</button>
-          </view>
-          <view class="count">
-            选择了
-            <text class="brage">{{ likeItem.total }}</text>
-            个游戏共计
-            <text class="brage">{{ likeItem.totalSize }} GB</text>
-          </view>
-          <view class="flex input-container">
-            <input
-              v-if="likeItem.isEdit"
-              v-model="likeItem.newVendorId"
-              class="input"
-              placeholder="粘贴您第三方平台编号"
-            />
-            <view v-else class="vendor-container">{{ likeItem.vendorId }}</view>
-            <button class="btn" @tap="saveVendor(likeItem)">{{ likeItem.isEdit ? '保存' : '编辑' }}</button>
-          </view>
-        </view>
-        <view class="list-item__body">
-          <List>
-            <ListItem
-              v-for="item in likeItem.products"
-              :key="item.id"
-              :disabled="true"
-              :name="item.name"
-              :size="item.size"
-              :src="item.avatar"
-            />
-          </List>
-        </view>
-        <view v-show="likeItem.total > 2" class="list-ite__footer">
-          <cover-view class="expand-btn" :class="{ 'is-expand': likeItem.expand }" @tap="toggleExpand(likeItem)">
-            <!-- <cover-view>∧</cover-view> -->
-            <template v-if="!likeItem.loading">
-              <cover-view>{{ likeItem.expand ? '折叠' : '展开' }}</cover-view>
-              <cover-image v-if="!likeItem.expand" src="/static/like/expand.png" class="expand-image"></cover-image>
-              <cover-image v-else src="/static/like/fold.png" class="expand-image"></cover-image>
-            </template>
-            <view v-if="likeItem.loading" class="loading-box">
-              <view class="loading-box__inner"></view>
-              <view class="loading-box__mask"></view>
+        <view
+          v-for="likeItem in list"
+          :key="likeItem.id"
+          class="list-item"
+        >
+          <view class="list-item__head">
+            <view class="flex between">
+              <view class="like-unique">{{ likeItem.id }}</view>
+              <button class="btn text" @tap="handleClipboard(likeItem.id)">复制编号</button>
             </view>
-          </cover-view>
+            <view class="count">
+              选择了
+              <text class="brage">{{ likeItem.total }}</text>
+              个游戏共计
+              <text class="brage">{{ likeItem.totalSize }} GB</text>
+            </view>
+            <view class="flex input-container">
+              <input
+                v-if="likeItem.isEdit"
+                v-model="likeItem.newVendorId"
+                class="input"
+                placeholder="粘贴您第三方平台编号"
+              />
+              <view v-else class="vendor-container">{{ likeItem.vendorId }}</view>
+              <button class="btn" @tap="saveVendor(likeItem)">{{ likeItem.isEdit ? '保存' : '编辑' }}</button>
+            </view>
+          </view>
+          <view class="list-item__body">
+            <List>
+              <ListItem
+                v-for="item in likeItem.products"
+                :key="item.id"
+                :disabled="true"
+                :name="item.name"
+                :size="item.size"
+                :src="item.avatar"
+              />
+              <ListItem
+                v-for="item in likeItem.products"
+                :key="item.id"
+                :disabled="true"
+                :name="item.name"
+                :size="item.size"
+                :src="item.avatar"
+              />
+              <ListItem
+                v-for="item in likeItem.products"
+                :key="item.id"
+                :disabled="true"
+                :name="item.name"
+                :size="item.size"
+                :src="item.avatar"
+              />
+            </List>
+          </view>
+          <view v-show="likeItem.total > 2" class="list-ite__footer">
+            <cover-view class="expand-btn" :class="{ 'is-expand': likeItem.expand }" @tap="toggleExpand(likeItem)">
+              <!-- <cover-view>∧</cover-view> -->
+              <template v-if="!likeItem.loading">
+                <cover-view>{{ likeItem.expand ? '折叠' : '展开' }}</cover-view>
+                <cover-image v-if="!likeItem.expand" src="/static/like/expand.png" class="expand-image"></cover-image>
+                <cover-image v-else src="/static/like/fold.png" class="expand-image"></cover-image>
+              </template>
+              <view v-if="likeItem.loading" class="loading-box">
+                <view class="loading-box__inner"></view>
+                <view class="loading-box__mask"></view>
+              </view>
+            </cover-view>
+          </view>
         </view>
+        <list-bottom-tips v-if="list.length" :loading="pullUpLoading" />
       </view>
-    </view>
+    </scroll-view>
   </view>
 </template>
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, reactive } from 'vue'
 import List from '@/components/List'
 import ListItem from '@/components/List/Item'
 import AppNavbar from '@/components/Navbar'
+import ListBottomTips from '@/components/ListBottomTips'
+import { delay } from '@/utils'
 import { inventoryRestful } from '@/api'
 import { handleClipboard } from '@/utils/clipboard'
 
@@ -72,10 +104,20 @@ export default defineComponent({
   components: {
     List,
 		ListItem,
-    AppNavbar
+    AppNavbar,
+    ListBottomTips
+  },
+  onPullDownRefresh() {
+    this.getList()
+      .then(() => {
+        uni.stopPullDownRefresh()
+      })
   },
   setup() {
-    const { list, saveVendor } = useList()
+    const { list, saveVendor, getList } = useList()
+    const { size } = useLayout()
+    const pullUpLoading = ref(false)
+    const pullDownLoading = ref(false)
 
     const toggleExpand = async (likeItem) => {
       if (likeItem.expand) {
@@ -91,14 +133,60 @@ export default defineComponent({
         clearTimeout(timer)
       }, 1500)
     }
+
+    // 上拉加载
+    const handleScrolltolower = () => {
+      pullUpLoading.value = true
+      delay(() => {
+        getList()
+          .then(() => {
+            pullUpLoading.value = false
+          })
+      }, 1000)
+    }
+
+    // 下拉刷新
+    const handleRefresherpulling = async () => {
+      pullDownLoading.value = true
+      delay(() => {
+        getList()
+          .then(() => {
+            pullDownLoading.value = false
+          })
+      }, 500)
+    }
     return {
+      size,
       list,
+      getList,
       saveVendor,
       toggleExpand,
-      handleClipboard
+      pullUpLoading,
+      pullDownLoading,
+      handleClipboard,
+      handleScrolltolower,
+      handleRefresherpulling
     }
   }
 })
+
+function useLayout() {
+  const size = reactive({
+    height: 0,
+    statusBarHeight: 0,
+    titleBarHeight: 0
+  })
+  const sysInfo = uni.getSystemInfoSync()
+  const { statusBarHeight } = sysInfo
+  // 胶囊信息
+  const rect = uni.getMenuButtonBoundingClientRect()
+  // size.titleBarHeight = react
+  const rectMarginTop = rect.top - statusBarHeight
+  size.titleBarHeight = rect.height + rectMarginTop * 2
+  size.statusBarHeight = statusBarHeight
+  size.height = size.statusBarHeight + size.titleBarHeight
+  return { size }
+}
 
 function useList() {
   const list = ref([])
@@ -171,6 +259,16 @@ function useList() {
   }
 }
 
+.scroll {
+  max-height: 100vh;
+}
+
+.nomore-tips {
+  text-align: center;
+  font-size: 26upx;
+  color: #999;
+  padding: 20upx 0;
+}
 .like-unique {
   color: fade(#333333, 50);
 }
@@ -196,17 +294,16 @@ function useList() {
   border-bottom: unset;
   color: #6C63FF;
 }
-.app-page {
-  padding-top: calc(64px + 40upx);
-}
 .like-list {
   font-size: 30upx;
   .app-page {
-    min-height: calc(100vh - 64px - 60upx);
+    min-height: 100vh;
+    box-sizing: border-box;
+    width: 100%;
   }
   .list-item {
     position: relative;
-    margin-bottom: 30px;
+    margin-bottom: 60upx;
     background: linear-gradient(145deg, fade(#6C63FF, 30), fade(#6C63FF, 10));
     border-radius: 20upx;
     padding: 20upx;
@@ -215,6 +312,9 @@ function useList() {
     box-shadow: 18upx 18upx 50upx fade(#000, 20),
                 -18upx -18upx 30upx fade(#6C63FF, 15);
               
+    &:first-child {
+      margin-top: 60upx;
+    }
   }
   .list-item__body {
     padding-top: 30upx;

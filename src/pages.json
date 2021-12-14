@@ -1,6 +1,15 @@
 {
 	"pages": [
 		{
+			"path": "pages/like/list",
+			"style": {
+				"navigationBarTitleText": "我想要",
+				"backgroundColor": "#DBE4F3",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationBarTitleText": "",
@@ -26,14 +35,6 @@
 			"style": {
 				"navigationBarTitleText": "寻找宝贝",
 				"backgroundColor": "#DBE4F3"
-			}
-		},
-		{
-			"path": "pages/like/list",
-			"style": {
-				"navigationBarTitleText": "我想要",
-				"backgroundColor": "#DBE4F3",
-				"navigationStyle": "custom"
 			}
 		}
 	],

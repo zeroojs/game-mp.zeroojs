@@ -1,5 +1,8 @@
 <template>
-  <cover-view class="navbar">
+  <cover-view
+    class="navbar"
+    :style="{ paddingTop: `${size.statusBarHeight}px`, height: `${size.height}px` }"
+  >
     <cover-view class="back-btn" @tap="back()">
       <cover-image src="/static/navbar/back.png" class="back-btn-img" />
     </cover-view>
@@ -16,6 +19,13 @@ export default defineComponent({
     title: {
       type: String,
       required: true
+    },
+    size: {
+      type: Object,
+      default: {
+        height: 0,
+        statusBarHeight: 0
+      }
     }
   },
   methods: {
