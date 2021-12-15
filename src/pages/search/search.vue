@@ -94,8 +94,8 @@ export default {
     }, { immediate: true, deep: true })
 
     const handleAction = async (item) => {
-      // const data = toRaw(item)
-      // await productRestful({ id: data.id, isLike: !data.isLike }, 'PUT')
+      const data = toRaw(item)
+      await productRestful({ id: data.id, isLike: !data.isLike }, 'PUT')
     }
 
     // 获取产品列表
@@ -109,7 +109,7 @@ export default {
         }
       }
       // 分页
-      const pageParams = {
+      const pageParams = isSearch ? {} : {
         limit: pagination.limit,
         skip: pagination.limit * pagination.offset
       }

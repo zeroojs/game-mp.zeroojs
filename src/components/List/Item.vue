@@ -9,7 +9,7 @@
     </view>
     <!-- v-if="!isMinus && !disabled" -->
     <view
-      v-if="!actionMinus"
+      v-if="!disabled && !actionMinus"
       class="action add"
       :class="{ hide: actionMinus, 'is-restart': isRestart, 'is-show': addShow && !isRestart }"
       :style="style"
@@ -21,9 +21,10 @@
     <view
       v-if="actionMinus && !disabled"
       class="action minus"
-      :class="{ 'no-animate': isMinus }"
+      :class="{ 'no-animate': defActionMinus }" 
       @click.stop="handleActionClick"
     >
+    <!-- :class="{ 'no-animate': isMinus }" -->
       -
     </view>
   </view>
@@ -45,7 +46,7 @@ export default defineComponent({
   emits: ['action'],
   setup(props, { emit }) {
     const { signin } = useSign()
-    const { move, style, actionMinus, isRestart, addShow } = useMove(props.isMinus)
+    const { move, style, actionMinus, isRestart, addShow, defActionMinus } = useMove(props.isMinus)
     const handleActionClick = (...rest) => {
       if (!props.isLogin) {
         signin()
@@ -59,6 +60,7 @@ export default defineComponent({
       addShow,
       isRestart,
       actionMinus,
+      defActionMinus,
       handleActionClick
     }
   }
@@ -67,46 +69,52 @@ export default defineComponent({
 function useMove(isMinus = false) {
   const style = ref('')
   const actionMinus = ref(isMinus) // 标注已加入想要列表
-  console.log('isMinus', isMinus)
+  const defActionMinus = ref(isMinus) // 标注已加入想要列表
   const isRestart = ref(false) // 标注回到最初位置
   const addShow = ref(false) // 添加按钮显示
   let timer = 0
   let reTimer = 0
   const move = (event) => {
-    // clearTimeout(timer)
-    // clearTimeout(reTimer)
-    if (reTimer !== 0) return // 防止过快点击，当动画结束完才能点击
-    console.log('actionMinus.value', actionMinus.value)
+    if (defActionMinus.value) {
+      defActionMinus.value = false
+      return
+    }
+    clearTimeout(timer)
+    clearTimeout(reTimer)
+    // if (reTimer !== 0) return // 防止过快点击，当动画结束完才能点击
     if (actionMinus.value) {
       actionMinus.value = false
       isRestart.value = false
       addShow.value = true
       return
     }
-    const { offsetLeft: x } = event.target
-    const [{ clientY }] = event.touches
-    const { screenWidth: winWidth, screenHeight: winHeight } = uni.getSystemInfoSync()
-    style.value = `position:fixed;left:${x}px;top:${clientY - 12}px;`
-    timer = setTimeout(() => {
-      style.value = `position:fixed;top:${winHeight}px;bottom:unset;left:${winWidth / 2}px;`
-      actionMinus.value = true
-      clearTimeout(timer)
-      timer = 0
-    }, 30)
-    reTimer = setTimeout(() => {
-      style.value = ''
-      isRestart.value = true
-      addShow.value = false
-      clearTimeout(reTimer)
-      reTimer = 0
-    }, 800)
+    actionMinus.value = true
+    isRestart.value = true
+    addShow.value = false
+    // const { offsetLeft: x } = event.target
+    // const [{ clientY }] = event.touches
+    // const { screenWidth: winWidth, screenHeight: winHeight } = uni.getSystemInfoSync()
+    // style.value = `position:fixed;left:${x}px;top:${clientY - 12}px;`
+    // timer = setTimeout(() => {
+    //   style.value = `position:fixed;top:${winHeight}px;bottom:unset;left:${winWidth / 2}px;`
+    //   actionMinus.value = true
+    //   clearTimeout(timer)
+    //   timer = 0
+    // }, 30)
+    // reTimer = setTimeout(() => {
+    //   style.value = ''
+    //   isRestart.value = true
+    //   addShow.value = false
+    //   clearTimeout(reTimer)
+    //   reTimer = 0
+    // }, 800)
   }
 
   onBeforeMount(() => {
     clearInterval(timer)
     clearInterval(reTimer)
   })
-  return { move, style, actionMinus, isRestart, addShow }
+  return { move, style, actionMinus, isRestart, addShow, defActionMinus }
 }
 </script>
 

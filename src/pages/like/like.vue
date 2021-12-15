@@ -87,7 +87,7 @@ export default {
   onShow() {
     this.isLogin = !!this.getLocaleUser()
     if (this.isLogin) {
-      this.getList()
+      this.getList(true)
     } else {
       this.list = []
     }
@@ -115,7 +115,7 @@ export default {
 
     watch(() => loginFlag.value, (val) => {
       isLogin.value = val
-      getList()
+      getList(true)
       if (!val) {
         list.value = []
       }
@@ -171,7 +171,7 @@ function useLike() {
   })
 
   // 获取喜欢列表数据
-  const getList = async () => {
+  const getList = async (isSearch = false) => {
     // 分页
     const pageParams = {
       limit: pagination.limit,
@@ -185,7 +185,7 @@ function useLike() {
       }
     })
     const listData = result.map(item => ({ ...item, isRemove: false }))
-    if (!list.value.length) {
+    if (!list.value.length || isSearch) {
       list.value = listData
       return
     }
@@ -197,7 +197,6 @@ function useLike() {
     })
     list.value = tempList
   }
-  getList()
 
   // 上拉加载
   const handleScrolltolower = () => {
